@@ -46,7 +46,7 @@ void handleRoot()
   html += "<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-allign: center;}";
   html += ".button1 { background-color: #4CAF50; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}";
   html += ".button2 { background-color: #555555; border: none; color: black; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;} </style></head>";
-  html += "<body><h1>ESP32 LED Controller</h1>";
+  html += "<body><center><h1>ESP32 LED Controller</h1>";
 
   html += "<p> HOT LED - State " + HotState + "</p>";
   if(HotState == "off")
@@ -68,7 +68,8 @@ void handleRoot()
     html += "<p><a href=\"/cold/off\"><button class=\"button2\">OFF</button></a></p>";
   }
 
-  html += "</body></html>";
+  html += "</center></body></html>";
+  server.sendHeader("Connection", "close");
   server.send(200, "text/html", html);
 }
 
