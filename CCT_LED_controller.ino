@@ -11,75 +11,87 @@ String HotState = "off";
 
 WebServer server(80);
 
-void handleColdOn()
-{
+// --- FUNKCJE STERUJĄCE (Nie ładują już całej strony!) ---
+
+void handleColdOn() {
   ColdState = "on";
   digitalWrite(coldPIN, HIGH);
-  handleRoot();
+  server.sendHeader("Connection", "close");
+  server.send(200, "text/plain", "OK"); // Zwracamy tylko tekst "OK"
 }
 
-void handleColdOff()
-{
+void handleColdOff() {
   ColdState = "off";
   digitalWrite(coldPIN, LOW);
-  handleRoot();
+  server.sendHeader("Connection", "close");
+  server.send(200, "text/plain", "OK");
 }
 
-void handleHotOn()
-{
+void handleHotOn() {
   HotState = "on";
   digitalWrite(hotPIN, HIGH);
-  handleRoot();
+  server.sendHeader("Connection", "close");
+  server.send(200, "text/plain", "OK");
 }
 
-void handleHotOff()
-{
+void handleHotOff() {
   HotState = "off";
   digitalWrite(hotPIN, LOW);
-  handleRoot();
-}
-
-void handleRoot()
-{
-  String html = "<!DOCTYPE html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"; //meta name content... to zeby na wszystkich urzadzeniach wyswietlalo sie odpowiednio
-  html += "<link rel=\"icon\" href=\"data:,\">"; //trik by komputer nie szukał ikony
-  html += "<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-allign: center;}";
-  html += ".button1 { background-color: #4CAF50; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}";
-  html += ".button2 { background-color: #555555; border: none; color: black; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;} </style></head>";
-  html += "<body><center><h1>ESP32 LED Controller</h1>";
-
-  html += "<p> HOT LED - State " + HotState + "</p>";
-  if(HotState == "off")
-  {
-    html += "<p><a href=\"/hot/on\"><button class=\"button1\">ON</button></a></p>";
-  }
-  else
-  {
-    html += "<p><a href=\"/hot/off\"><button class=\"button2\">OFF</button></a></p>";
-  }
-
-  html += "<p> COLD LED - State " + ColdState + "</p>";
-  if(ColdState == "off")
-  {
-    html += "<p><a href=\"/cold/on\"><button class=\"button1\">ON</button></a></p>";
-  }
-  else
-  {
-    html += "<p><a href=\"/cold/off\"><button class=\"button2\">OFF</button></a></p>";
-  }
-
-  html += "</center></body></html>";
   server.sendHeader("Connection", "close");
-  server.send(200, "text/html", html);
+  server.send(200, "text/plain", "OK");
 }
 
-void handleNotFound() 
-{
+// Funkcja obsługująca braki ukrytych plików z telefonu (żeby nie muliło)
+void handleNotFound() {
+  server.sendHeader("Connection", "close");
   server.send(404, "text/plain", "Not found");
 }
 
-void setup() 
-{
+// --- GŁÓWNA STRONA ---
+
+void handleRoot() {
+  String html = "<!DOCTYPE html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">";
+  html += "<link rel=\"icon\" href=\"data:,\">";
+  html += "<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}";
+  html += ".button { border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}";
+  html += ".btn-on { background-color: #4CAF50; }";
+  html += ".btn-off { background-color: #555555; }</style>";
+  
+  // Magia JavaScript (AJAX) - Wysyłanie w tle
+  html += "<script>";
+  html += "function sendCommand(url, elementId, newState) {";
+  html += "  fetch(url).then(response => {"; // Wyślij żądanie do ESP32
+  html += "    if(response.ok) {"; // Jeśli ESP32 odpowiedziało 200 (OK)
+  html += "      document.getElementById(elementId).innerText = newState;"; // Zmień tekst stanu na stronie
+  html += "    }";
+  html += "  });";
+  html += "}";
+  html += "</script></head>";
+  
+  html += "<body><h1>ESP32 LED Controller</h1>";
+
+  // Sekcja HOT LED
+  // Używamy tagu <span> aby łatwo znaleźć to miejsce i podmienić tekst przez JavaScript
+  html += "<p> HOT LED - State <span id=\"hot-state\">" + HotState + "</span></p>";
+  html += "<p>";
+  // Kiedy przycisk zostaje kliknięty, uruchamia funkcję sendCommand()
+  html += "<button class=\"button btn-on\" onclick=\"sendCommand('/hot/on', 'hot-state', 'on')\">ON</button>";
+  html += "<button class=\"button btn-off\" onclick=\"sendCommand('/hot/off', 'hot-state', 'off')\">OFF</button>";
+  html += "</p>";
+
+  // Sekcja COLD LED
+  html += "<p> COLD LED - State <span id=\"cold-state\">" + ColdState + "</span></p>";
+  html += "<p>";
+  html += "<button class=\"button btn-on\" onclick=\"sendCommand('/cold/on', 'cold-state', 'on')\">ON</button>";
+  html += "<button class=\"button btn-off\" onclick=\"sendCommand('/cold/off', 'cold-state', 'off')\">OFF</button>";
+  html += "</p>";
+
+  html += "</body></html>";
+  server.sendHeader("Connection", "close"); // Rozłącz od razu
+  server.send(200, "text/html", html);
+}
+
+void setup() {
   Serial.begin(115200);
 
   pinMode(coldPIN, OUTPUT);
@@ -91,8 +103,10 @@ void setup()
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
-  {
+  
+  WiFi.setSleep(false); // WYŁĄCZ OSZCZĘDZANIE ENERGII WIFI - klu do szybkości na telefonach!
+
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
@@ -106,8 +120,7 @@ void setup()
   server.on("/hot/off", handleHotOff);
   server.on("/cold/on", handleColdOn);
   server.on("/cold/off", handleColdOff);
-
-  server.onNotFound(handleNotFound);
+  server.onNotFound(handleNotFound); // Rejestracja funkcji obsługi błędów 404
 
   server.begin();
   Serial.println("HTTP server started");
