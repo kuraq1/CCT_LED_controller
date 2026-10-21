@@ -7,25 +7,55 @@ body {
     font-size: 17px;
 }
 
-button {
-    padding: 25px 45px;
-    font-size: 20px;
-    margin: 10px;
-    cursor: pointer;
-    border-radius: 8px;
-    border: none;
-    color: white;
-    transition: 0.4s;
+.slidecontainer {
+  width: 60%; /* Width of the outside container */
 }
 
-#btn-on {
-    background-color: #4CAF50;;
+/* The slider itself */
+.slider {
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  width: 60%; /* Full-width */
+  height: 25px; /* Specified height */
+  border-radius: 12px;
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
 }
 
-#btn-off {
-    background-color: #f44336;
+/* Mouse-over effects */
+.slider:hover {
+  opacity: 1; /* Fully shown on mouse-over */
 }
 
-button:hover {
-    opacity: 0.6;
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 30px; /* Set a specific slider handle width */
+  height: 30px; /* Slider handle height */
+  border-radius: 50%;
+  background: #eee128; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+}
+
+#coldRange.slider::-webkit-slider-thumb {
+    background: #28eeee;
+}
+
+.slider::-moz-range-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 30px; /* Set a specific slider handle width */
+  height: 30px; /* Slider handle height */
+  border-radius: 50%;
+  background: #eee128; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+}
+
+
+#coldRange.slider::-moz-slider-thumb {
+    background: #28eeee;
 }

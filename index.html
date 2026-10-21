@@ -9,11 +9,12 @@
 <body>
 
     <h1>Panel ESP32</h1>
-    <p>Status diody: <span id="stan-led">Wyłączona</span></p>
-
-    <button id="btn-on">Włącz LED</button>
-    <button id="btn-off">Wyłącz LED</button>
-
+    <div class="slidecontainer"></div>
+        <p>Status hot: <span id="hot-stat">0</span></p>
+        <input type="range" min="0" max="100" value="0" class="slider" id="hotRange">
+        <p>Status cold: <span id="cold-stat">0</span></p>
+        <input type="range" min="0" max="100" value="0" class="slider" id="coldRange">
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
